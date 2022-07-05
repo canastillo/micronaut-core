@@ -17,6 +17,7 @@ package io.micronaut.core.convert;
 
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.convert.converters.MultiValuesConverterFactory;
 import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.convert.format.Format;
@@ -174,6 +175,19 @@ public class DefaultConversionService implements ConversionService<DefaultConver
         typeConverters.put(pair, typeConverter);
         converterCache.put(pair, typeConverter);
         return this;
+    }
+
+
+    /**
+     * Reset internal state.
+     *
+     * @since 3.5.3
+     */
+    @Internal
+    public void reset() {
+        typeConverters.clear();
+        converterCache.clear();
+        registerDefaultConverters();
     }
 
     /**
