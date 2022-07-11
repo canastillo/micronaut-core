@@ -53,6 +53,12 @@ public @interface CircuitBreaker {
     Class<? extends Throwable>[] excludes() default {};
 
     /**
+     * @return The exception types to exclude from being rethrown when circuit is open (defaults to none)
+     */
+    @AliasFor(annotation = Retryable.class, member = "excludeRethrown")
+    Class<? extends Throwable>[] excludeRethrown() default {};
+
+    /**
      * @return The maximum number of retry attempts
      */
     @Digits(integer = MAX_RETRY_ATTEMPTS, fraction = 0)
