@@ -20,6 +20,7 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.inject.ExecutableMethod;
 import io.micronaut.retry.CircuitState;
 import io.micronaut.retry.RetryStateBuilder;
+import io.micronaut.retry.annotation.CircuitBreaker;
 import io.micronaut.retry.annotation.RetryPredicate;
 import io.micronaut.retry.event.CircuitClosedEvent;
 import io.micronaut.retry.event.CircuitOpenEvent;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.concurrent.atomic.AtomicReference;
@@ -89,13 +91,16 @@ class CircuitBreakerRetry implements MutableRetryState {
     @Override
     public void open() {
         if (currentState() == CircuitState.OPEN && lastError != null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Rethrowing existing exception for Open Circuit [{}]: {}", method, lastError.getMessage());
-            }
-            if (lastError instanceof RuntimeException) {
-                throw (RuntimeException) lastError;
-            } else {
-                throw new CircuitOpenException("Circuit Open: " + lastError.getMessage(), lastError);
+            Class<? extends Throwable>[] excludeRethrown = method.classValues(CircuitBreaker.class, "excludeRethrown");
+            if (Arrays.stream(excludeRethrown).noneMatch(lastError::equals)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Rethrowing existing exception for Open Circuit [{}]: {}", method, lastError.getMessage());
+                }
+                if (lastError instanceof RuntimeException) {
+                    throw (RuntimeException) lastError;
+                } else {
+                    throw new CircuitOpenException("Circuit Open: " + lastError.getMessage(), lastError);
+                }
             }
         }
     }
